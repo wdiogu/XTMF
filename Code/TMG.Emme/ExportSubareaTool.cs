@@ -41,10 +41,37 @@ namespace TMG.Emme
 
         public Tuple<byte, byte, byte> ProgressColour { get { return new Tuple<byte, byte, byte>(50, 150, 50); } }
 
+
+
         [RunParameter("Scenario Number", 0, "The scenario number to execute against.")]
         public int ScenarioNumber;
 
         const string ToolName = "tmg.input_output.export_subarea_tool";
+
+        [RunParameter("I Subarea Link Selection", "", "The outgoing connectors used to tag the centroids within the subarea. results are stored in the gate link attribute specified eg. \"i=21,24 or i=27 or i=31,34\"")]
+        public string ISubareaLinkSelection;
+
+        [RunParameter("J Subarea Link Selection", "", "The incoming connectors used to tag the centroids within the subarea. results are stored in the gate link attribute specified eg. \"j=21,24 or j=27 or j=31,34\"")]
+        public string JSubareaLinkSelection;
+
+        [RunParameter("Subarea Gate Attribute", "@gate", "The link extra attribute that defines your gate numbers")]
+        public string SubareaGateAttribute;
+
+        [RunParameter("Subarea Node Attribute", "@nflag", "The node attribute that will be used to define the subarea.")]
+        public string SubareaNodeAttribute;
+
+        [RunParameter("Create Gate Attrib", false, "set to TRUE to create gate labels for your network.")]
+        public bool CreateGateAttrib;
+        [RunParameter("Extract Transit", false, "Set this to TRUE to export the subarea transit")]
+        public bool ExtractTransit;
+        [RunParameter("Output Folder", "", "Folder directory to write output of the subarea database")]
+        public string OutputFolder;
+
+        [RunParameter("Create Node Flag From ShapeFile", false, "set to False if subarea node attribute is already defined in the network.")]
+        public bool CreateNodeFlagFromShapeFile;
+
+        [SubModelInformation(Required = false, Description = "Subarea node attribute definition using shape file")]
+        public FileLocation ShapeFileLocation;
 
         [SubModelInformation(Description = "The classes for this multi-class assignment.")]
         public Class[] Classes;
@@ -148,6 +175,15 @@ namespace TMG.Emme
             return new[]
             {
                 new ModellerControllerParameter("xtmf_ScenarioNumber", ScenarioNumber.ToString()),
+                new ModellerControllerParameter("xtmf_shapeFileLocation", GetFileLocationOrNone(ShapeFileLocation)),
+                new ModellerControllerParameter("xtmf_iSubareaLinkSelection", ISubareaLinkSelection.ToString()),
+                new ModellerControllerParameter("xtmf_jSubareaLinkSelection", JSubareaLinkSelection.ToString()),
+                new ModellerControllerParameter("xtmf_subareaGateAttribute", SubareaGateAttribute.ToString()),
+                new ModellerControllerParameter("xtmf_subareaNodeAttribute", SubareaNodeAttribute.ToString()),
+                new ModellerControllerParameter("xtmf_createNodeFlagFromShapeFile", CreateNodeFlagFromShapeFile.ToString()),
+                new ModellerControllerParameter("xtmf_createGateAttrib", CreateGateAttrib.ToString()),
+                new ModellerControllerParameter("xtmf_extractTransit", ExtractTransit.ToString()),
+                new ModellerControllerParameter("xtmf_outputFolder", OutputFolder.ToString()),
                 new ModellerControllerParameter("Mode_List", GetClasses()),
                 new ModellerControllerParameter("xtmf_Demand_String", GetDemand()),
                 new ModellerControllerParameter("TimesMatrixId", GetTimes()),
@@ -168,6 +204,11 @@ namespace TMG.Emme
                 new ModellerControllerParameter("xtmf_BackgroundTransit", BackgroundTransit.ToString()),
                 new ModellerControllerParameter("OnRoadTTFRanges", OnRoadTTFs.ToString())
             };
+        }
+
+        private static string GetFileLocationOrNone(FileLocation location)
+        {
+            return location == null ? "None" : Path.GetFullPath(location.GetFilePath());
         }
 
         private string GetTimes()
